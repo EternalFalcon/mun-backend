@@ -41,11 +41,6 @@ const razorpay = new Razorpay({
 });
 const app = express();
 app.use(bodyParser.json());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "https://daga.vercel.app"); // update to match the domain you will make the request from
   res.header(
