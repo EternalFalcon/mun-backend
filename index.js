@@ -47,7 +47,7 @@ app.use(
   })
 );
 app.use(ignoreFavicon);
-app.listen(4000);
+app.listen(process.env.PORT);
 
 app.get("/", (req, res) => {
   res.status(500).send("hi");
