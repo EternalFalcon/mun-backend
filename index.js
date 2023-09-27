@@ -47,21 +47,22 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Headers", "*"); // Allow any headers
   res.header("Access-Control-Allow-Credentials", "true"); // Include this if needed
 
-  if (req.method === "OPTIONS") {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
+  // if (req.method === "OPTIONS") {
+  //   res.sendStatus(200);
+  // } else {
+  next();
 });
-// app.use(function (req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "https://daga.vercel.app"); // update to match the domain you will make the request from
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
+//   }
+// });
+// // app.use(function (req, res, next) {
+// //   res.header("Access-Control-Allow-Origin", "https://daga.vercel.app"); // update to match the domain you will make the request from
+// //   res.header(
+// //     "Access-Control-Allow-Headers",
+// //     "Origin, X-Requested-With, Content-Type, Accept"
+// //   );
+// //   next();
 app.use(ignoreFavicon);
-app.listen(process.env.PORT);
+app.listen(process.env.PORT || 4000);
 
 app.get("/", (req, res) => {
   res.status(500).send("hi");
