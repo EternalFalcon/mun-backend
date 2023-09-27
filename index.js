@@ -108,9 +108,9 @@ app.post("/individual", async function (req, res) {
         { id: id, total: regInfo.total + 10 },
         { merge: true }
       );
-      console.log(req.body);
 
       res.send({ result: "success", ids: [[req.body.name, id]] });
+      console.log("Res is sent ");
     } catch (e) {
       res.send("error");
       console.log(e);
