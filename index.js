@@ -1,12 +1,12 @@
 import express from "express";
-import { initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app/dist/index.cjs.js";
 import {
   getFirestore,
   collection,
   setDoc,
   doc,
   getDoc,
-} from "firebase/firestore";
+} from "firebase/firestore/dist/index.cjs.js";
 import bodyParser from "body-parser";
 import cors from "cors";
 import crypto from "crypto";
