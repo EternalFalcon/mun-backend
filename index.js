@@ -14,6 +14,14 @@ import Razorpay from "razorpay";
 import dotenv from "dotenv";
 
 import shortid from "shortid";
+const app = express();
+import product from "./api/product.js";
+
+app.use(express.json({ extended: false }));
+app.use("/api/product", product);
+
+const PORT = process.env.port || 8080;
+app.listen(PORT, () => console.log(`Server is running in port ${PORT}`));
 
 dotenv.config();
 const firebaseConfig = {
@@ -39,8 +47,9 @@ const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY,
   key_secret: process.env.RAZORPAY_SECRET,
 });
-const app = express();
+
 app.use(bodyParser.json());
+
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*"); // Allow any origin
   res.header("Access-Control-Allow-Methods", "*"); // Allow any HTTP method
@@ -62,7 +71,6 @@ app.use((req, res, next) => {
 // //   );
 // //   next();
 app.use(ignoreFavicon);
-app.listen(process.env.PORT || 4000);
 
 app.get("/", (req, res) => {
   res.status(500).send("hi");
