@@ -25,7 +25,7 @@ app.listen(PORT, () => console.log(`Server is running in port ${PORT}`));
 
 dotenv.config();
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API,
+  apiKey: "AIzaSyDbJnRowz12dNnhrGduNeqWDhNpjFFOBPk",
   authDomain: "sjbhsmun-2023.firebaseapp.com",
   projectId: "sjbhsmun-2023",
   storageBucket: "sjbhsmun-2023.appspot.com",
@@ -44,8 +44,8 @@ function ignoreFavicon(req, res, next) {
 const fireApp = initializeApp(firebaseConfig);
 const db = getFirestore(fireApp);
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY,
-  key_secret: process.env.RAZORPAY_SECRET,
+  key_id: "rzp_live_ayY9VZc9GAfZ38",
+  key_secret: "iPYGivxQ0Hx9weMtE3BNI52X",
 });
 
 app.use(bodyParser.json());
@@ -114,7 +114,7 @@ app.post("/indipay", async function (req, res) {
 app.post("/individual", async function (req, res) {
   const { order_id, payment_id, razorpay_signature } = req.body;
 
-  let key_secret = process.env.RAZORPAY_SECRET;
+  let key_secret = "iPYGivxQ0Hx9weMtE3BNI52X";
 
   // STEP 8: Verification & Send Response to User
 
@@ -152,7 +152,7 @@ app.post("/individual", async function (req, res) {
 app.post("/delegation", async function (req, res) {
   const { order_id, payment_id, razorpay_signature } = req.body;
 
-  let key_secret = process.env.RAZORPAY_SECRET;
+  let key_secret = "iPYGivxQ0Hx9weMtE3BNI52X";
 
   // STEP 8: Verification & Send Response to User
 
