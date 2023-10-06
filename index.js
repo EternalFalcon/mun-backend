@@ -172,7 +172,7 @@ app.post("/delegation", async function (req, res) {
       const regPage = doc(db, "mun-details", "registrations");
       let regInfo = (await getDoc(regPage)).data();
       const delId = parseInt(regInfo.delegation) + 10;
-      const delegationInformation = delegation;
+      const delegationInformation = { ...delegation };
       delete delegationInformation.delegation;
 
       await setDoc(
