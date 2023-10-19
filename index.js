@@ -76,41 +76,41 @@ app.get("/", (req, res) => {
   res.status(500).send("hi");
 });
 
-// app.post("/indipay", async function (req, res) {
-//   if (req.method === "POST") {
-//     // Initialize razorpay object
+app.post("/indipay", async function (req, res) {
+  if (req.method === "POST") {
+    // Initialize razorpay object
 
-//     console.log("Information Recieved");
+    console.log("Information Recieved");
 
-//     // Create an order -> generate the OrderID -> Send it to the Front-end
-//     const payment_capture = 1;
-//     console.log(req.body);
-//     const amount = parseInt(1299 * parseInt(req.body.total));
-//     const currency = "INR";
-//     const options = {
-//       amount: (amount * 100).toString(),
-//       currency,
-//       receipt: shortid.generate(),
-//       payment_capture,
-//     };
+    // Create an order -> generate the OrderID -> Send it to the Front-end
+    const payment_capture = 1;
+    console.log(req.body);
+    const amount = parseInt(1299 * parseInt(req.body.total));
+    const currency = "INR";
+    const options = {
+      amount: (amount * 100).toString(),
+      currency,
+      receipt: shortid.generate(),
+      payment_capture,
+    };
 
-//     try {
-//       const response = await razorpay.orders.create(options);
-//       res.status(200).json({
-//         id: response.id,
-//         currency: response.currency,
-//         amount: response.amount,
-//       });
-//       console.log("Order Sent");
-//     } catch (err) {
-//       console.log(err);
-//       res.status(400).json(err);
-//     }
-//   } else {
-//     // Handle any other HTTP method
-//   }
-//   //  ;
-// });
+    try {
+      const response = await razorpay.orders.create(options);
+      res.status(200).json({
+        id: response.id,
+        currency: response.currency,
+        amount: response.amount,
+      });
+      console.log("Order Sent");
+    } catch (err) {
+      console.log(err);
+      res.status(400).json(err);
+    }
+  } else {
+    // Handle any other HTTP method
+  }
+  //  ;
+});
 app.post("/individual", async function (req, res) {
   const { order_id, payment_id, razorpay_signature } = req.body;
 
