@@ -86,7 +86,7 @@ app.post("/indipay", async function (req, res) {
     // Create an order -> generate the OrderID -> Send it to the Front-end
     const payment_capture = 1;
    
-    const amount = parseInt(1);//* parseInt(req.body.total)
+    const amount = parseInt(1450);//* parseInt(req.body.total)
     const currency = "INR";
     const options = {
       amount: (amount * 100).toString(),
