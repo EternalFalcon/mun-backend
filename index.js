@@ -86,7 +86,7 @@ app.post("/indipay", async function (req, res) {
   totalAmount = 0; // Multiply the amount by number of members
   if (registrationType === "individual") {
     totalAmount = individualPrice * total; // Individual registrations (₹1450 per person)
-  } else if (registrationType === "delegation" && total >= 3) {
+  } else if (registrationType === "delegation") {
     totalAmount = delegationPrice * total; // Delegation registrations (₹1350 per person for 2 or more)
   }
   if (req.method === "POST") {
