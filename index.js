@@ -77,6 +77,12 @@ app.get("/", (req, res) => {
 });
 
 app.post("/indipay", async function (req, res) {
+  const { total } = req.body; // 'total' corresponds to the number of members
+  let amountPerPerson = 1450; // Replace with actual amount
+  let totalAmount = amountPerPerson;
+  if (total === 2) {
+    totalAmount *= 2; // Multiply the amount by 2 for two members
+  }
   if (req.method === "POST") {
     // Initialize razorpay object
 
@@ -86,10 +92,10 @@ app.post("/indipay", async function (req, res) {
     // Create an order -> generate the OrderID -> Send it to the Front-end
     const payment_capture = 1;
    
-    const amount = parseInt(1450);//* parseInt(req.body.total)
+
     const currency = "INR";
     const options = {
-      amount: (amount * 100).toString(),
+      amount: (totalAmount * 100).toString(),
       currency,
       receipt: shortid.generate(),
       payment_capture,
