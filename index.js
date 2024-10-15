@@ -77,12 +77,18 @@ app.get("/", (req, res) => {
 });
 
 app.post("/indipay", async function (req, res) {
-  const { total } = req.body; // 'total' corresponds to the number of members
-  let amountPerPerson = 1450; // Replace with actual amount
-  let totalAmount = amountPerPerson;
+  const { total, registrationType } = req.body; // 'total' corresponds to the number of members
+   // Define prices for different registration types
+   const individualPrice = 1450;
+   const delegationPrice = 1350;
+  let totalAmount = 1450;
   
-  totalAmount *= total; // Multiply the amount by number of members
-  
+  totalAmount = 0; // Multiply the amount by number of members
+  if (registrationType === "individual") {
+    totalAmount = individualPrice * total; // Individual registrations (₹1450 per person)
+  } else if (registrationType === "delegation" && total >= 3) {
+    totalAmount = delegationPrice * total; // Delegation registrations (₹1350 per person for 2 or more)
+  }
   if (req.method === "POST") {
     // Initialize razorpay object
 
