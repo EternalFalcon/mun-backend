@@ -1,12 +1,12 @@
 import express from "express";
-import { initializeApp } from "firebase/app/dist/index.cjs.js";
+import { initializeApp } from "firebase/app";
 import {
   getFirestore,
   collection,
   setDoc,
   doc,
   getDoc,
-} from "firebase/firestore/dist/index.cjs.js";
+} from "firebase/firestore";
 import bodyParser from "body-parser";
 import cors from "cors";
 import crypto from "crypto";
@@ -25,13 +25,13 @@ app.listen(PORT, () => console.log(`Server is running in port ${PORT}`));
 
 dotenv.config();
 const firebaseConfig = {
-  apiKey: "AIzaSyDbJnRowz12dNnhrGduNeqWDhNpjFFOBPk",
-  authDomain: "sjbhsmun-2023.firebaseapp.com",
-  projectId: "sjbhsmun-2023",
-  storageBucket: "sjbhsmun-2023.appspot.com",
-  messagingSenderId: "325178861580",
-  appId: "1:325178861580:web:209c1d8d86f5ff7f2de629",
-  measurementId: "G-MHDL61NQEH",
+  apiKey: "AIzaSyAnOwoIlac50towq2o0iX6WnK3ZCqzQx1c",
+  authDomain: "sjbhsmun2024.firebaseapp.com",
+  projectId: "sjbhsmun2024",
+  storageBucket: "sjbhsmun2024.appspot.com",
+  messagingSenderId: "460087169859",
+  appId: "1:460087169859:web:a71a7729e840596e4115f6",
+  measurementId: "G-FE0E80WT6H"
 };
 
 function ignoreFavicon(req, res, next) {
@@ -44,8 +44,8 @@ function ignoreFavicon(req, res, next) {
 const fireApp = initializeApp(firebaseConfig);
 const db = getFirestore(fireApp);
 const razorpay = new Razorpay({
-  key_id: "rzp_live_ayY9VZc9GAfZ38",
-  key_secret: "iPYGivxQ0Hx9weMtE3BNI52X",
+  key_id: "rzp_live_FYKXMux8xXT6nA",
+  key_secret: "TXTocXXpZlYo4TOyAOzSijZY",
 });
 
 app.use(bodyParser.json());
@@ -81,10 +81,11 @@ app.post("/indipay", async function (req, res) {
     // Initialize razorpay object
 
     console.log("Information Recieved");
+     
 
     // Create an order -> generate the OrderID -> Send it to the Front-end
     const payment_capture = 1;
-    console.log(req.body);
+   
     const amount = parseInt(1);//* parseInt(req.body.total)
     const currency = "INR";
     const options = {
@@ -95,13 +96,14 @@ app.post("/indipay", async function (req, res) {
     };
 
     try {
+      console.log(req.body);
       const response = await razorpay.orders.create(options);
       res.status(200).json({
         id: response.id,
         currency: response.currency,
         amount: response.amount,
       });
-      console.log("Order Sent");
+      
     } catch (err) {
       console.log(err);
       res.status(400).json(err);
@@ -113,8 +115,9 @@ app.post("/indipay", async function (req, res) {
 });
 app.post("/individual", async function (req, res) {
   const { order_id, payment_id, razorpay_signature } = req.body;
+  
 
-  let key_secret = "iPYGivxQ0Hx9weMtE3BNI52X";
+  let key_secret = "TXTocXXpZlYo4TOyAOzSijZY";
 
   // STEP 8: Verification & Send Response to User
 
@@ -126,7 +129,8 @@ app.post("/individual", async function (req, res) {
 
   // Creating the hmac in the required format
   const generated_signature = hmac.digest("hex");
-
+ console.log("Info Recieved")
+console.log(req.body)
   if (razorpay_signature === generated_signature) {
     try {
       const regPage = doc(db, "mun-details", "registrations");
@@ -152,7 +156,7 @@ app.post("/individual", async function (req, res) {
 app.post("/delegation", async function (req, res) {
   const { order_id, payment_id, razorpay_signature } = req.body;
 
-  let key_secret = "iPYGivxQ0Hx9weMtE3BNI52X";
+  let key_secret = "TXTocXXpZlYo4TOyAOzSijZY";
 
   // STEP 8: Verification & Send Response to User
 
@@ -161,6 +165,7 @@ app.post("/delegation", async function (req, res) {
 
   // Passing the data to be hashed
   hmac.update(order_id + "|" + payment_id);
+
 
   // Creating the hmac in the required format
   const generated_signature = hmac.digest("hex");
@@ -173,7 +178,8 @@ app.post("/delegation", async function (req, res) {
       let regInfo = (await getDoc(regPage)).data();
       const delId = parseInt(regInfo.delegation) + 10;
       const delegationInformation = { ...delegation };
-      delete delegationInformation.delegation;
+      //delete delegationInformation.delegation;
+      console.log(delegation)
 
       await setDoc(
         doc(db, delegation.name, "information"),
