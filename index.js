@@ -79,7 +79,7 @@ app.get("/", (req, res) => {
 app.post("/indipay", async function (req, res) {
   const { total, registrationType } = req.body; // 'total' corresponds to the number of members
    // Define prices for different registration types
-   const individualPrice = 1450;
+   const individualPrice = 1;
    const delegationPrice = 1;
   let totalAmount = 1450;
   
