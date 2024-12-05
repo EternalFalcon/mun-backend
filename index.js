@@ -77,25 +77,17 @@ app.get("/", (req, res) => {
 });
 
 app.post("/indipay", async function (req, res) {
-  const { total, registrationType } = req.body; // 'total' corresponds to the number of members
-   // Define prices for different registration types
-   const individualPrice = 1450;
-   const delegationPrice = 1350;
-  let totalAmount = 1450;
-  
-  totalAmount = 0; // Multiply the amount by number of members
-  if (registrationType === "individual") {
-    totalAmount = individualPrice * total; // Individual registrations (₹1450 per person)
-  } else if (registrationType === "delegation") {
-    totalAmount = delegationPrice * total; // Delegation registrations (₹1350 per person for 2 or more)
-  }
-  else{
-    
-  }
-  if (req.method === "POST") {
-    // Initialize razorpay object
+  const { total, registrationType } = req.body; // 'total' corresponds to the number of participants
+  const basePrice = 300;
 
-    console.log("Information Recieved");
+  if (!Number.isInteger(total) || total <= 0) {
+    return res.status(400).json({ error: "Invalid total participants value" });
+  }
+
+  let totalAmount = basePrice * total; // Multiply total participants with base price
+
+  if (req.method === "POST") {
+    console.log("Information Received");
      
 
     // Create an order -> generate the OrderID -> Send it to the Front-end
