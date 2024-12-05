@@ -77,7 +77,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/indipay", async function (req, res) {
-  const { total, registrationType } = req.body; // 'total' corresponds to the number of participants
+  const {total} = req.body; // 'total' corresponds to the number of participants
   const basePrice = 300;
 
   if (!Number.isInteger(total) || total <= 0) {
