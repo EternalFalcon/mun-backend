@@ -88,14 +88,33 @@ app.post("/individual", async (req, res) => {
   try {
     console.log("Request payload at /individual:", req.body);
 
-    const { order_id, payment_id, razorpay_signature, fName, total, day1, day2 } = req.body;
+    // Use `name` from the request if `fName` is missing
+    const {
+      order_id,
+      payment_id,
+      razorpay_signature,
+      fName,
+      name,
+      total,
+      day1,
+      day2,
+      email,
+      phoneNumber,
+      dateOfBirth,
+    } = req.body;
+
+    // Assign `name` to `fName` if `fName` is not explicitly provided
+    const finalName = fName || name || "Anonymous";
 
     if (!order_id || !payment_id || !razorpay_signature || !total) {
       return res.status(400).json({ error: "Missing required fields", data: req.body });
     }
 
     const registrationData = {
-      fName: fName || "Anonymous", // Fallback value
+      fName: finalName,
+      email: email || "No email provided",
+      phoneNumber: phoneNumber || "No phone number provided",
+      dateOfBirth: dateOfBirth || "No date of birth provided",
       total: total || 0,
       day1: day1 || {},
       day2: day2 || null,
@@ -111,21 +130,14 @@ app.post("/individual", async (req, res) => {
 
     console.log("New ID:", newId, "Updated Total:", updatedTotal);
 
-    // Write sanitized data to Firestore
-    const sanitizedData = {
-      ...registrationData,
-      fName: registrationData.fName || "Anonymous",
-      total: registrationData.total || 0,
-    };
-
-    await setDoc(doc(db, "individual-registrations", newId.toString()), sanitizedData);
+    await setDoc(doc(db, "individual-registrations", newId.toString()), registrationData);
     await setDoc(
       regPage,
       { id: newId, total: updatedTotal },
       { merge: true }
     );
 
-    res.status(200).json({ result: "success", ids: [[fName, newId]] });
+    res.status(200).json({ result: "success", ids: [[finalName, newId]] });
   } catch (error) {
     console.error("Error in /individual endpoint:", error.message);
     res.status(500).json({ error: "Internal server error", details: error.message });
