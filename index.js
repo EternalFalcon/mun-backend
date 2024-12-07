@@ -14,208 +14,178 @@ import Razorpay from "razorpay";
 import dotenv from "dotenv";
 
 import shortid from "shortid";
-const app = express();
-import product from "./api/product.js";
-
-app.use(express.json({ extended: false }));
-app.use("/api/product", product);
-
-const PORT = process.env.port || 8080;
-app.listen(PORT, () => console.log(`Server is running in port ${PORT}`));
-
 dotenv.config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json({ extended: false }));
+app.use(bodyParser.json());
+
+// Firebase Initialization
 const firebaseConfig = {
-  apiKey: "AIzaSyAnOwoIlac50towq2o0iX6WnK3ZCqzQx1c",
-  authDomain: "sjbhsmun2024.firebaseapp.com",
-  projectId: "sjbhsmun2024",
-  storageBucket: "sjbhsmun2024.appspot.com",
-  messagingSenderId: "460087169859",
-  appId: "1:460087169859:web:a71a7729e840596e4115f6",
-  measurementId: "G-FE0E80WT6H"
+  apiKey: "AIzaSyDLIsh-5C2GnoUiemDWevVwojcxSeoBIlo",
+  authDomain: "sjbhsphenomenon2024.firebaseapp.com",
+  projectId: "sjbhsphenomenon2024",
+  storageBucket: "sjbhsphenomenon2024.firebaseapp.com",
+  messagingSenderId: "321451426175",
+  appId: "1:321451426175:web:8562dfd8795aa59033da4a",
+  measurementId: "G-6M50VRN3YX",
 };
-
-function ignoreFavicon(req, res, next) {
-  if (req.originalUrl.includes("favicon.ico")) {
-    res.status(204).end();
-  }
-  next();
-}
-
 const fireApp = initializeApp(firebaseConfig);
 const db = getFirestore(fireApp);
+
+// Razorpay Initialization
 const razorpay = new Razorpay({
   key_id: "rzp_live_FYKXMux8xXT6nA",
   key_secret: "TXTocXXpZlYo4TOyAOzSijZY",
 });
 
-app.use(bodyParser.json());
-
+// Middleware to Ignore Favicon Requests
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Allow any origin
-  res.header("Access-Control-Allow-Methods", "*"); // Allow any HTTP method
-  res.header("Access-Control-Allow-Headers", "*"); // Allow any headers
-  res.header("Access-Control-Allow-Credentials", "true"); // Include this if needed
-
-  // if (req.method === "OPTIONS") {
-  //   res.sendStatus(200);
-  // } else {
-  next();
+  if (req.originalUrl.includes("favicon.ico")) {
+    res.status(204).end();
+  } else {
+    next();
+  }
 });
-//   }
-// });
-// // app.use(function (req, res, next) {
-// //   res.header("Access-Control-Allow-Origin", "https://daga.vercel.app"); // update to match the domain you will make the request from
-// //   res.header(
-// //     "Access-Control-Allow-Headers",
-// //     "Origin, X-Requested-With, Content-Type, Accept"
-// //   );
-// //   next();
-app.use(ignoreFavicon);
 
+// Test Route
 app.get("/", (req, res) => {
-  res.status(500).send("hi");
+  res.status(200).send("Backend is running!");
 });
 
-app.post("/indipay", async function (req, res) {
-  const {total} = req.body; // 'total' corresponds to the number of participants
+// Razorpay Payment Endpoint
+app.post("/indipay", async (req, res) => {
+  const { total } = req.body;
   const basePrice = 300;
 
+  // Validate 'total'
   if (!Number.isInteger(total) || total <= 0) {
     return res.status(400).json({ error: "Invalid total participants value" });
   }
 
-  let totalAmount = basePrice * total; // Multiply total participants with base price
+  // Calculate total amount
+  const totalAmount = basePrice * total;
 
-  if (req.method === "POST") {
-    console.log("Information Received");
-     
+  const options = {
+    amount: totalAmount * 100, // Amount in paise
+    currency: "INR",
+    receipt: shortid.generate(),
+    payment_capture: 1,
+  };
 
-    // Create an order -> generate the OrderID -> Send it to the Front-end
-    const payment_capture = 1;
-    const currency = "INR";
-    const options = {
-      amount: (totalAmount * 100).toString(),
-      currency,
-      receipt: shortid.generate(),
-      payment_capture,
-    };
-
-    try {
-      console.log(req.body);
-      const response = await razorpay.orders.create(options);
-      res.status(200).json({
-        id: response.id,
-        currency: response.currency,
-        amount: response.amount,
-      });
-      
-    } catch (err) {
-      console.log(err);
-      res.status(400).json(err);
-    }
-  } else {
-    // Handle any other HTTP method
-  }
-  //  ;
-});
-app.post("/individual", async function (req, res) {
-  const { order_id, payment_id, razorpay_signature } = req.body;
-  
-
-  let key_secret = "TXTocXXpZlYo4TOyAOzSijZY";
-
-  // STEP 8: Verification & Send Response to User
-
-  // Creating hmac object
-  let hmac = crypto.createHmac("sha256", key_secret);
-
-  // Passing the data to be hashed
-  hmac.update(order_id + "|" + payment_id);
-
-  // Creating the hmac in the required format
-  const generated_signature = hmac.digest("hex");
- console.log("Info Recieved")
-console.log(req.body)
-  if (razorpay_signature === generated_signature) {
-    try {
-      const regPage = doc(db, "mun-details", "registrations");
-      const regInfo = (await getDoc(regPage)).data();
-      const id = parseInt(regInfo.id) + 10;
-      console.log(id);
-      await setDoc(doc(db, req.body.committee, id.toString()), req.body);
-      await setDoc(
-        regPage,
-        { id: id, total: parseInt(regInfo.total) + parseInt(req.body.total) },
-        { merge: true }
-      );
-
-      res.send({ result: "success", ids: [[req.body.name, id]] });
-      console.log("Res is sent ");
-    } catch (e) {
-      res.send("error");
-      console.log(e);
-    }
-  } else res.json({ success: false, message: "Payment verification failed" });
-});
-
-app.post("/delegation", async function (req, res) {
-  const { order_id, payment_id, razorpay_signature } = req.body;
-
-  let key_secret = "TXTocXXpZlYo4TOyAOzSijZY";
-
-  // STEP 8: Verification & Send Response to User
-
-  // Creating hmac object
-  let hmac = crypto.createHmac("sha256", key_secret);
-
-  // Passing the data to be hashed
-  hmac.update(order_id + "|" + payment_id);
-
-
-  // Creating the hmac in the required format
-  const generated_signature = hmac.digest("hex");
-
-  if (razorpay_signature === generated_signature) {
-    try {
-      let ids = [];
-      const delegation = req.body;
-      const regPage = doc(db, "mun-details", "registrations");
-      let regInfo = (await getDoc(regPage)).data();
-      const delId = parseInt(regInfo.delegation) + 10;
-      const delegationInformation = { ...delegation };
-      //delete delegationInformation.delegation;
-      console.log(delegation)
-
-      await setDoc(
-        doc(db, delegation.name, "information"),
-        delegationInformation
-      );
-      await setDoc(
-        regPage,
-        {
-          delegation: delId,
-          totalDel: parseInt(regInfo.totalDel) + 1,
-        },
-        { merge: true }
-      );
-      let id = regInfo.id;
-      delegation.delegation.forEach(async (person) => {
-        id = id + 10;
-
-        ids.push([person.name, id]);
-        await setDoc(doc(db, delegation.name, id.toString()), person);
-        await setDoc(regPage, { id: id }, { merge: true });
-      });
-
-      await setDoc(
-        regPage,
-        { total: parseInt(regInfo.total) + parseInt(delegation.total) },
-        { merge: true }
-      );
-      console.log(ids);
-      res.send({ ids: ids, result: "success" });
-    } catch (e) {
-      console.error(e);
-    }
+  try {
+    const order = await razorpay.orders.create(options);
+    res.status(200).json({
+      id: order.id,
+      currency: order.currency,
+      amount: order.amount,
+    });
+  } catch (error) {
+    console.error("Error creating Razorpay order:", error);
+    res.status(500).json({ error: "Error creating order" });
   }
 });
+
+// Individual Registration Endpoint
+app.post("/individual", async (req, res) => {
+  const { order_id, payment_id, razorpay_signature, total, name, committee } = req.body;
+
+  if (!order_id || !payment_id || !razorpay_signature || !total || !name || !committee) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // Payment Verification
+  const generated_signature = crypto
+    .createHmac("sha256", razorpay.key_secret)
+    .update(`${order_id}|${payment_id}`)
+    .digest("hex");
+
+  if (generated_signature !== razorpay_signature) {
+    return res.status(400).json({ success: false, message: "Payment verification failed" });
+  }
+
+  try {
+    // Fetch current registration data
+    const regPage = doc(db, "mun-details", "registrations");
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
+
+    // Generate unique IDs
+    const newId = parseInt(regInfo.id || 0) + 10;
+    const updatedTotal = parseInt(regInfo.total || 0) + total;
+
+    // Update individual registration
+    await setDoc(doc(db, committee, newId.toString()), req.body);
+    await setDoc(
+      regPage,
+      { id: newId, total: updatedTotal },
+      { merge: true }
+    );
+
+    res.status(200).json({ result: "success", ids: [[name, newId]] });
+  } catch (error) {
+    console.error("Error processing registration:", error);
+    res.status(500).json({ error: "Error processing registration" });
+  }
+});
+
+// Delegation Registration Endpoint
+app.post("/delegation", async (req, res) => {
+  const { order_id, payment_id, razorpay_signature, delegation, name, total } = req.body;
+
+  if (!order_id || !payment_id || !razorpay_signature || !delegation || !name || !total) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // Payment Verification
+  const generated_signature = crypto
+    .createHmac("sha256", razorpay.key_secret)
+    .update(`${order_id}|${payment_id}`)
+    .digest("hex");
+
+  if (generated_signature !== razorpay_signature) {
+    return res.status(400).json({ success: false, message: "Payment verification failed" });
+  }
+
+  try {
+    const regPage = doc(db, "mun-details", "registrations");
+    const regInfo = (await getDoc(regPage)).data() || { delegation: 0, totalDel: 0, total: 0 };
+
+    const newDelegationId = parseInt(regInfo.delegation || 0) + 10;
+    const updatedTotalDel = parseInt(regInfo.totalDel || 0) + 1;
+    const updatedTotal = parseInt(regInfo.total || 0) + total;
+
+    // Save delegation information
+    await setDoc(doc(db, name, "information"), { ...req.body });
+    await setDoc(
+      regPage,
+      {
+        delegation: newDelegationId,
+        totalDel: updatedTotalDel,
+        total: updatedTotal,
+      },
+      { merge: true }
+    );
+
+    // Assign unique IDs to delegation members
+    const ids = [];
+    let id = parseInt(regInfo.id || 0);
+    for (const person of delegation) {
+      id += 10;
+      ids.push([person.name, id]);
+      await setDoc(doc(db, name, id.toString()), person);
+    }
+
+    await setDoc(regPage, { id }, { merge: true });
+
+    res.status(200).json({ result: "success", ids });
+  } catch (error) {
+    console.error("Error processing delegation:", error);
+    res.status(500).json({ error: "Error processing delegation" });
+  }
+});
+
+// Start Server
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
