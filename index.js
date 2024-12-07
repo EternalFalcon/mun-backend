@@ -86,79 +86,37 @@ app.post("/indipay", async (req, res) => {
 // Individual Registration Endpoint
 app.post("/individual", async function (req, res) {
   try {
-    // Log the incoming data
-    console.log("Received data:", req.body);
+    const { order_id, payment_id, razorpay_signature, total, fName, day1, day2 } = req.body;
 
-    // Extract fields from the posted data
-    const {
-      fName,
-      email,
-      phoneNumber,
-      dateOfBirth,
-      isChecked,
-      day1,
-      day2,
-      total,
-    } = req.body;
-
-    // Validate required fields
-
-    // Parse day1 data
-    const day1Data = {
-      event: day1?.event || null,
-      category: day1?.category || null,
-      members: day1?.members || 0,
-      additionalParticipants: day1?.additionalParticipants || [],
-    };
-
-    // Parse day2 data (only if it has valid members)
-    const day2Data =
-      day2?.members > 0
-        ? {
-            event: day2?.event || null,
-            category: day2?.category || null,
-            members: day2?.members,
-            additionalParticipants: day2?.additionalParticipants || [],
-          }
-        : null;
-
-    // Payment verification logic
-    const { order_id, payment_id, razorpay_signature } = req.body;
+    // Validate input
     if (!order_id || !payment_id || !razorpay_signature) {
-      return res.status(400).json({ error: "Missing payment details" });
+      console.error("Missing required fields:", req.body);
+      return res.status(400).json({ error: "Missing required fields", data: req.body });
     }
 
-    const generated_signature = crypto
-      .createHmac("sha256", razorpay.key_secret)
-      .update(`${order_id}|${payment_id}`)
-      .digest("hex");
-
-    if (generated_signature !== razorpay_signature) {
-      console.error("Payment verification failed:", { generated_signature, razorpay_signature });
-      return res.status(400).json({ success: false, message: "Payment verification failed" });
-    }
-
-    // Firestore operations
+    // Firestore initialization
     const regPage = doc(db, "mun-details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
     const newId = parseInt(regInfo.id || 0) + 10;
     const updatedTotal = parseInt(regInfo.total || 0) + total;
 
-    // Prepare the data to store in Firestore
     const registrationData = {
-      name: fName,
-      email,
-      phoneNumber,
-      dateOfBirth,
-      isChecked,
-      day1: day1Data,
-      day2: day2Data,
+      fName,
       total,
+      day1: day1 || {},
+      day2: day2 || null,
     };
 
-    // Save to Firestore
-    await setDoc(doc(db, "individual-registrations", newId.toString()), registrationData);
+    console.log("Preparing to write to Firestore:", {
+      docPath: `individual-registrations/${newId}`,
+      registrationData,
+      updatedTotal,
+    });
+
+    // Write to Firestore
+    const docRef = doc(db, "individual-registrations", newId.toString());
+    await setDoc(docRef, registrationData);
     await setDoc(
       regPage,
       { id: newId, total: updatedTotal },
@@ -167,7 +125,7 @@ app.post("/individual", async function (req, res) {
 
     res.status(200).json({ result: "success", ids: [[fName, newId]] });
   } catch (error) {
-    console.error("Error in /individual endpoint:", error);
+    console.error("Error in /individual endpoint:", error.code, error.message);
     res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
