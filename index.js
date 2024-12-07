@@ -87,7 +87,7 @@ app.post("/indipay", async (req, res) => {
 app.post("/individual", async (req, res) => {
   const { order_id, payment_id, razorpay_signature, total, name, committee } = req.body;
 
-  if (!order_id || !payment_id || !razorpay_signature || !total || !name || !committee) {
+  if (!order_id || !payment_id || !razorpay_signature || !total ) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -129,7 +129,7 @@ app.post("/individual", async (req, res) => {
 app.post("/delegation", async (req, res) => {
   const { order_id, payment_id, razorpay_signature, delegation, name, total } = req.body;
 
-  if (!order_id || !payment_id || !razorpay_signature || !delegation || !name || !total) {
+  if (!order_id || !payment_id || !razorpay_signature ) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
