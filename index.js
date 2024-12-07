@@ -102,10 +102,6 @@ app.post("/individual", async function (req, res) {
     } = req.body;
 
     // Validate required fields
-    if (!fName || !email || !phoneNumber || !dateOfBirth || !total) {
-      console.error("Missing fields in request body:", req.body);
-      return res.status(400).json({ error: "Missing required fields" });
-    }
 
     // Parse day1 data
     const day1Data = {
