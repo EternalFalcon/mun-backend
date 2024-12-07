@@ -157,19 +157,27 @@ app.post("/individual", async function (req, res) {
       total,
     };
 
-    // Save to Firestore
-    await setDoc(doc(db, "individual-registrations", newId.toString()), registrationData);
-    await setDoc(
-      regPage,
-      { id: newId, total: updatedTotal },
-      { merge: true }
-    );
-
-    res.status(200).json({ result: "success", ids: [[fName, newId]] });
-  } catch (error) {
-    console.error("Error in /individual endpoint:", error);
-    res.status(500).json({ error: "Internal server error", details: error.message });
-  }
+    try {
+      const docRef = doc(db, "individual-registrations", newId.toString());
+    
+      console.log("Firestore Path:", docRef.path);
+      console.log("Registration Data:", registrationData);
+      console.log("Updated Total:", updatedTotal);
+    
+      // Save to Firestore
+      await setDoc(docRef, registrationData);
+      await setDoc(
+        regPage,
+        { id: newId, total: updatedTotal },
+        { merge: true }
+      );
+    
+      res.status(200).json({ result: "success", ids: [[fName, newId]] });
+    } catch (error) {
+      console.error("Error in Firestore operation:", error.message);
+      res.status(500).json({ error: "Internal server error", details: error.message });
+    }
+    
 });
 
 
