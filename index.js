@@ -84,39 +84,41 @@ app.post("/indipay", async (req, res) => {
 });
 
 // Individual Registration Endpoint
-app.post("/individual", async function (req, res) {
+app.post("/individual", async (req, res) => {
   try {
-    const { order_id, payment_id, razorpay_signature, total, fName, day1, day2 } = req.body;
+    console.log("Request payload at /individual:", req.body);
 
-    // Validate input
-    if (!order_id || !payment_id || !razorpay_signature) {
-      console.error("Missing required fields:", req.body);
+    const { order_id, payment_id, razorpay_signature, fName, total, day1, day2 } = req.body;
+
+    if (!order_id || !payment_id || !razorpay_signature || !total) {
       return res.status(400).json({ error: "Missing required fields", data: req.body });
     }
 
-    // Firestore initialization
+    const registrationData = {
+      fName: fName || "Anonymous", // Fallback value
+      total: total || 0,
+      day1: day1 || {},
+      day2: day2 || null,
+    };
+
+    console.log("Registration Data before Firestore:", registrationData);
+
     const regPage = doc(db, "mun-details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
     const newId = parseInt(regInfo.id || 0) + 10;
     const updatedTotal = parseInt(regInfo.total || 0) + total;
 
-    const registrationData = {
-      fName,
-      total,
-      day1: day1 || {},
-      day2: day2 || null,
+    console.log("New ID:", newId, "Updated Total:", updatedTotal);
+
+    // Write sanitized data to Firestore
+    const sanitizedData = {
+      ...registrationData,
+      fName: registrationData.fName || "Anonymous",
+      total: registrationData.total || 0,
     };
 
-    console.log("Preparing to write to Firestore:", {
-      docPath: `individual-registrations/${newId}`,
-      registrationData,
-      updatedTotal,
-    });
-
-    // Write to Firestore
-    const docRef = doc(db, "individual-registrations", newId.toString());
-    await setDoc(docRef, registrationData);
+    await setDoc(doc(db, "individual-registrations", newId.toString()), sanitizedData);
     await setDoc(
       regPage,
       { id: newId, total: updatedTotal },
@@ -125,7 +127,7 @@ app.post("/individual", async function (req, res) {
 
     res.status(200).json({ result: "success", ids: [[fName, newId]] });
   } catch (error) {
-    console.error("Error in /individual endpoint:", error.code, error.message);
+    console.error("Error in /individual endpoint:", error.message);
     res.status(500).json({ error: "Internal server error", details: error.message });
   }
 });
