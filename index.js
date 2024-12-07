@@ -60,11 +60,6 @@ app.post("/indipay", async (req, res) => {
   const { total } = req.body;
   const basePrice = 300;
 
-  // Validate 'total'
-  if (!Number.isInteger(total) || total <= 0) {
-    return res.status(400).json({ error: "Invalid total participants value" });
-  }
-
   // Calculate total amount
   const totalAmount = basePrice * total;
 
