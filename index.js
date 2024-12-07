@@ -85,7 +85,7 @@ app.post("/indipay", async (req, res) => {
 
 // Individual Registration Endpoint
 app.post("/individual", async (req, res) => {
-  const { order_id, payment_id, razorpay_signature, total, name, committee } = req.body;
+  const { order_id, payment_id, razorpay_signature, total} = req.body;
 
   if (!order_id || !payment_id || !razorpay_signature || !total ) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -111,7 +111,7 @@ app.post("/individual", async (req, res) => {
     const updatedTotal = parseInt(regInfo.total || 0) + total;
 
     // Update individual registration
-    await setDoc(doc(db, committee, newId.toString()), req.body);
+    await setDoc(doc(db, newId.toString()), req.body);
     await setDoc(
       regPage,
       { id: newId, total: updatedTotal },
