@@ -148,7 +148,8 @@ app.post("/individual", async (req, res) => {
 // Delegation Registration Endpoint
 app.post("/delegation", async (req, res) => {
   try {
-    // Validate the request body
+    console.log("Incoming request:", JSON.stringify(req.body, null, 2));
+
     const {
       order_id,
       payment_id,
@@ -159,13 +160,18 @@ app.post("/delegation", async (req, res) => {
       events,
     } = req.body;
 
+    // Validate request body
     if (
       !order_id ||
       !payment_id ||
       !razorpay_signature ||
-      !institutionName
+      !institutionName ||
+      !totalParticipants ||
+      !totalEvents ||
+      !events ||
+      !Array.isArray(events)
     ) {
-      console.log("Invalid request body:", req.body);
+      console.error("Invalid request body:", req.body);
       return res.status(400).json({ error: "Invalid request body." });
     }
 
@@ -177,19 +183,17 @@ app.post("/delegation", async (req, res) => {
       total: 0,
       id: 0,
     };
-
-    console.log("Existing Registration Info:", regInfo);
+    console.log("Existing registration info:", regInfo);
 
     const newDelegationId = parseInt(regInfo.delegation || 0) + 10;
     const updatedTotalDel = parseInt(regInfo.totalDel || 0) + 1;
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
 
-    console.log("New Delegation ID:", newDelegationId);
-    console.log("Updated Total Delegations:", updatedTotalDel);
-    console.log("Updated Total Participants:", updatedTotal);
+    console.log("New delegation ID:", newDelegationId);
+    console.log("Updating total delegations to:", updatedTotalDel);
+    console.log("Updating total participants to:", updatedTotal);
 
-    // Save institution and delegation data
-    console.log("Saving institution and delegation information...");
+    console.log("Saving institution information...");
     await setDoc(doc(db, "institutions", institutionName), {
       institutionName,
       totalParticipants,
@@ -206,6 +210,7 @@ app.post("/delegation", async (req, res) => {
     const ids = [];
     let id = parseInt(regInfo.id || 0);
     for (const event of events) {
+      console.log("Processing event:", event.name);
       const eventDoc = doc(db, institutionName, event.name);
       await setDoc(eventDoc, {
         name: event.name,
@@ -216,20 +221,20 @@ app.post("/delegation", async (req, res) => {
           ids.push([participant.name, id]);
           return {
             ...participant,
-            uniqueId: id, // Assign a unique ID to each participant
+            uniqueId: id,
           };
         }),
       });
     }
 
-    console.log("Updating registration summary...");
+    console.log("Updating last used ID...");
     await setDoc(
       regPage,
       {
         delegation: newDelegationId,
         totalDel: updatedTotalDel,
         total: updatedTotal,
-        id, // Save the last used unique ID
+        id,
       },
       { merge: true }
     );
@@ -237,10 +242,12 @@ app.post("/delegation", async (req, res) => {
     console.log("Delegation processed successfully.");
     res.status(200).json({ result: "success", ids });
   } catch (error) {
-    console.error("Error processing delegation:", error);
+    console.error("Error processing delegation:", error.message);
+    console.error("Stack trace:", error.stack);
     res.status(500).json({ error: "Error processing delegation" });
   }
 });
+
 
 // Start Server
 const PORT = process.env.PORT || 8080;
