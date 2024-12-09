@@ -147,52 +147,89 @@ app.post("/individual", async (req, res) => {
 
 // Delegation Registration Endpoint
 app.post("/delegation", async (req, res) => {
-  const { order_id, payment_id, razorpay_signature, delegation, name, total } = req.body;
+  const {
+    order_id,
+    payment_id,
+    razorpay_signature,
+    events,
+    institutionName,
+    totalParticipants,
+    totalEvents,
+  } = req.body;
 
-  if (!order_id || !payment_id || !razorpay_signature ) {
+  // Validate required fields
+  if (!order_id || !payment_id || !razorpay_signature || !institutionName || !events) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   // Payment Verification
   const generated_signature = crypto
-    .createHmac("sha256", razorpay.key_secret)
+    .createHmac("sha256", process.env.RAZORPAY_SECRET) // Use your Razorpay secret key
     .update(`${order_id}|${payment_id}`)
     .digest("hex");
 
   if (generated_signature !== razorpay_signature) {
-    return res.status(400).json({ success: false, message: "Payment verification failed" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Payment verification failed" });
   }
 
   try {
+    // Fetch existing registration details
     const regPage = doc(db, "mun-details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { delegation: 0, totalDel: 0, total: 0 };
+    const regInfo = (await getDoc(regPage)).data() || {
+      delegation: 0,
+      totalDel: 0,
+      total: 0,
+    };
 
     const newDelegationId = parseInt(regInfo.delegation || 0) + 10;
     const updatedTotalDel = parseInt(regInfo.totalDel || 0) + 1;
-    const updatedTotal = parseInt(regInfo.total || 0) + total;
+    const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
 
-    // Save delegation information
-    await setDoc(doc(db, name, "information"), { ...req.body });
+    // Save institution and delegation data
+    const institutionDoc = doc(db, "institutions", institutionName);
+    await setDoc(institutionDoc, {
+      institutionName,
+      totalEvents,
+      totalParticipants,
+      paymentDetails: {
+        order_id,
+        payment_id,
+        razorpay_signature,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    // Assign unique IDs to participants and save event data
+    const ids = [];
+    let id = parseInt(regInfo.id || 0);
+    for (const event of events) {
+      const eventDoc = doc(db, institutionName, event.name);
+      await setDoc(eventDoc, {
+        ...event,
+        participants: event.participants.map((participant) => {
+          id += 10;
+          ids.push([participant.name, id]);
+          return {
+            ...participant,
+            uniqueId: id, // Assign a unique ID to each participant
+          };
+        }),
+      });
+    }
+
+    // Update registration summary
     await setDoc(
       regPage,
       {
         delegation: newDelegationId,
         totalDel: updatedTotalDel,
         total: updatedTotal,
+        id, // Save the last used unique ID
       },
       { merge: true }
     );
-
-    // Assign unique IDs to delegation members
-    const ids = [];
-    let id = parseInt(regInfo.id || 0);
-    for (const person of delegation) {
-      id += 10;
-      ids.push([person.name, id]);
-      await setDoc(doc(db, name, id.toString()), person);
-    }
-
-    await setDoc(regPage, { id }, { merge: true });
 
     res.status(200).json({ result: "success", ids });
   } catch (error) {
