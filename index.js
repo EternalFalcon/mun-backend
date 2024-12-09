@@ -163,11 +163,7 @@ app.post("/delegation", async (req, res) => {
       !order_id ||
       !payment_id ||
       !razorpay_signature ||
-      !institutionName ||
-      !totalParticipants ||
-      !totalEvents ||
-      !events ||
-      !Array.isArray(events)
+      !institutionName
     ) {
       console.log("Invalid request body:", req.body);
       return res.status(400).json({ error: "Invalid request body." });
