@@ -164,15 +164,25 @@ app.post("/delegation", async (req, res) => {
   }
 
   try {
+    console.log("Fetching registration details...");
     const regPage = doc(db, "mun-details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { delegation: 0, totalDel: 0, total: 0 };
-
+  
+    console.log("Existing Registration Info:", regInfo);
+  
     const newDelegationId = parseInt(regInfo.delegation || 0) + 10;
     const updatedTotalDel = parseInt(regInfo.totalDel || 0) + 1;
     const updatedTotal = parseInt(regInfo.total || 0) + total;
-
+  
+    console.log("New Delegation ID:", newDelegationId);
+    console.log("Updated Total Delegations:", updatedTotalDel);
+    console.log("Updated Total Participants:", updatedTotal);
+  
     // Save delegation information
+    console.log("Saving delegation information...");
     await setDoc(doc(db, name, "information"), { ...req.body });
+  
+    console.log("Updating registration summary...");
     await setDoc(
       regPage,
       {
@@ -182,24 +192,28 @@ app.post("/delegation", async (req, res) => {
       },
       { merge: true }
     );
-
+  
     // Assign unique IDs to delegation members
+    console.log("Assigning unique IDs to delegation members...");
     const ids = [];
     let id = parseInt(regInfo.id || 0);
     for (const person of delegation) {
       id += 10;
       ids.push([person.name, id]);
+      console.log(`Saving person: ${person.name}, ID: ${id}`);
       await setDoc(doc(db, name, id.toString()), person);
     }
-
+  
+    console.log("Updating last used ID...");
     await setDoc(regPage, { id }, { merge: true });
-
+  
+    console.log("Delegation processed successfully.");
     res.status(200).json({ result: "success", ids });
   } catch (error) {
     console.error("Error processing delegation:", error);
     res.status(500).json({ error: "Error processing delegation" });
   }
-});
+});  
 
 // Start Server
 const PORT = process.env.PORT || 8080;
