@@ -169,19 +169,6 @@ app.post("/delegation", async (req, res) => {
       return res.status(400).json({ error: "Invalid request body." });
     }
 
-    // Payment verification
-    console.log("Verifying payment...");
-    const generated_signature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_SECRET) // Use your Razorpay secret key
-      .update(`${order_id}|${payment_id}`)
-      .digest("hex");
-
-    if (generated_signature !== razorpay_signature) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Payment verification failed" });
-    }
-
     console.log("Fetching registration details...");
     const regPage = doc(db, "mun-details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || {
