@@ -147,41 +147,98 @@ app.post("/individual", async (req, res) => {
 
 // Delegation Registration Endpoint
 app.post("/delegation", async (req, res) => {
-  const { order_id, payment_id, razorpay_signature, delegation, name, total } = req.body;
-
-  if (!order_id || !payment_id || !razorpay_signature ) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  // Payment Verification
-  const generated_signature = crypto
-    .createHmac("sha256", razorpay.key_secret)
-    .update(`${order_id}|${payment_id}`)
-    .digest("hex");
-
-  if (generated_signature !== razorpay_signature) {
-    return res.status(400).json({ success: false, message: "Payment verification failed" });
-  }
-
   try {
+    // Validate the request body
+    const {
+      order_id,
+      payment_id,
+      razorpay_signature,
+      institutionName,
+      totalParticipants,
+      totalEvents,
+      events,
+    } = req.body;
+
+    if (
+      !order_id ||
+      !payment_id ||
+      !razorpay_signature ||
+      !institutionName ||
+      !totalParticipants ||
+      !totalEvents ||
+      !events ||
+      !Array.isArray(events)
+    ) {
+      console.log("Invalid request body:", req.body);
+      return res.status(400).json({ error: "Invalid request body." });
+    }
+
+    // Payment verification
+    console.log("Verifying payment...");
+    const generated_signature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET) // Use your Razorpay secret key
+      .update(`${order_id}|${payment_id}`)
+      .digest("hex");
+
+    if (generated_signature !== razorpay_signature) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Payment verification failed" });
+    }
+
     console.log("Fetching registration details...");
     const regPage = doc(db, "mun-details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { delegation: 0, totalDel: 0, total: 0 };
-  
+    const regInfo = (await getDoc(regPage)).data() || {
+      delegation: 0,
+      totalDel: 0,
+      total: 0,
+      id: 0,
+    };
+
     console.log("Existing Registration Info:", regInfo);
-  
+
     const newDelegationId = parseInt(regInfo.delegation || 0) + 10;
     const updatedTotalDel = parseInt(regInfo.totalDel || 0) + 1;
-    const updatedTotal = parseInt(regInfo.total || 0) + total;
-  
+    const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
+
     console.log("New Delegation ID:", newDelegationId);
     console.log("Updated Total Delegations:", updatedTotalDel);
     console.log("Updated Total Participants:", updatedTotal);
-  
-    // Save delegation information
-    console.log("Saving delegation information...");
-    await setDoc(doc(db, name, "information"), { ...req.body });
-  
+
+    // Save institution and delegation data
+    console.log("Saving institution and delegation information...");
+    await setDoc(doc(db, "institutions", institutionName), {
+      institutionName,
+      totalParticipants,
+      totalEvents,
+      paymentDetails: {
+        order_id,
+        payment_id,
+        razorpay_signature,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log("Saving events and participants...");
+    const ids = [];
+    let id = parseInt(regInfo.id || 0);
+    for (const event of events) {
+      const eventDoc = doc(db, institutionName, event.name);
+      await setDoc(eventDoc, {
+        name: event.name,
+        members: event.members,
+        category: event.category,
+        participants: event.participants.map((participant) => {
+          id += 10;
+          ids.push([participant.name, id]);
+          return {
+            ...participant,
+            uniqueId: id, // Assign a unique ID to each participant
+          };
+        }),
+      });
+    }
+
     console.log("Updating registration summary...");
     await setDoc(
       regPage,
@@ -189,31 +246,18 @@ app.post("/delegation", async (req, res) => {
         delegation: newDelegationId,
         totalDel: updatedTotalDel,
         total: updatedTotal,
+        id, // Save the last used unique ID
       },
       { merge: true }
     );
-  
-    // Assign unique IDs to delegation members
-    console.log("Assigning unique IDs to delegation members...");
-    const ids = [];
-    let id = parseInt(regInfo.id || 0);
-    for (const person of delegation) {
-      id += 10;
-      ids.push([person.name, id]);
-      console.log(`Saving person: ${person.name}, ID: ${id}`);
-      await setDoc(doc(db, name, id.toString()), person);
-    }
-  
-    console.log("Updating last used ID...");
-    await setDoc(regPage, { id }, { merge: true });
-  
+
     console.log("Delegation processed successfully.");
     res.status(200).json({ result: "success", ids });
   } catch (error) {
     console.error("Error processing delegation:", error);
     res.status(500).json({ error: "Error processing delegation" });
   }
-});  
+});
 
 // Start Server
 const PORT = process.env.PORT || 8080;
