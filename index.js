@@ -58,7 +58,7 @@ app.get("/", (req, res) => {
 // Razorpay Payment Endpoint
 app.post("/indipay", async (req, res) => {
   const { total } = req.body;
-  const basePrice = 300;
+  const basePrice = 1;
 
   // Calculate total amount
   const totalAmount = basePrice * total;
@@ -148,7 +148,7 @@ app.post("/individual", async (req, res) => {
 // Delegation Registration Endpoint
 app.post("/delegation", async (req, res) => {
   try {
-    console.log("Incoming request:", JSON.stringify(req.body, null, 2));
+    console.log("Request payload at /delegation:", req.body);
 
     const {
       order_id,
@@ -156,38 +156,92 @@ app.post("/delegation", async (req, res) => {
       razorpay_signature,
       institutionName,
       totalParticipants,
-      totalEvents,
       events,
     } = req.body;
 
-    console.log("Fetching registration details...");
+    // Validation for required fields
+    if (!order_id || !payment_id || !razorpay_signature || !institutionName || !events) {
+      return res.status(400).json({
+        error: "Missing required fields",
+        data: req.body,
+      });
+    }
+  
+    // Prepare registration data
     const regPage = doc(db, "mun-details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || {
-      delegation: 0,
-      totalDel: 0,
-      total: 0,
-      id: 0,
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, delegation: 0, total: 0 };
+
+    const newDelegationId = parseInt(regInfo.delegation || 0) + 10;
+    const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
+
+    console.log("New Delegation ID:", newDelegationId, "Updated Total:", updatedTotal);
+
+    // Save delegation information
+    const delegationData = {
+      institutionName,
+      totalParticipants,
+      events,
+      paymentDetails: {
+        order_id,
+        payment_id,
+        razorpay_signature,
+      },
+      timestamp: new Date().toISOString(),
     };
 
-    console.log("Existing registration info:", regInfo);
+    // Save delegation data under the institution
+    console.log("Saving delegation data...");
+    await setDoc(doc(db, "delegations", newDelegationId.toString()), delegationData);
 
-    // Proceed with saving data...
-    // (Omitted for brevity — this part should stay the same)
+    // Save individual participant data
+    const ids = [];
+    let uniqueId = parseInt(regInfo.id || 0);
+    for (const event of events) {
+      console.log(`Processing event: ${event.name}`);
+      for (const participant of event.participants) {
+        uniqueId += 10;
+        ids.push([participant.name, uniqueId]);
 
-    console.log("Delegation processed successfully.");
+        // Save participant under the institution and event
+        const participantDoc = doc(
+          db,
+          "delegations",
+          newDelegationId.toString(),
+          "participants",
+          uniqueId.toString()
+        );
+        await setDoc(participantDoc, {
+          ...participant,
+          event: event.name,
+          category: event.category,
+          institutionName,
+          uniqueId,
+        });
+      }
+    }
+
+    // Update delegation summary in Firestore
+    console.log("Updating delegation summary...");
+    await setDoc(
+      regPage,
+      {
+        id: uniqueId,
+        delegation: newDelegationId,
+        total: updatedTotal,
+      },
+      { merge: true }
+    );
+
     res.status(200).json({ result: "success", ids });
   } catch (error) {
-    console.error("Error processing delegation:", error.message);
-    console.error("Stack trace:", error.stack);
-
-    // Send error details to the frontend
+    console.error("Error in /delegation endpoint:", error.message);
     res.status(500).json({
-      error: "Error processing delegation.",
-      message: error.message,
-      stack: error.stack,
+      error: "Internal server error",
+      details: error.message,
     });
   }
 });
+
 
 
 // Start Server
