@@ -159,7 +159,7 @@ app.post("/delegation", async (req, res) => {
   
     // Prepare registration data
     const regPage = doc(db, "transcendence-details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { id: 0, institutions: 0, total: 0 };
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, institution: 0, total: 0 };
 
     const newInstitutionId = parseInt(regInfo.institutions || 0) + 10;
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
@@ -195,8 +195,8 @@ app.post("/delegation", async (req, res) => {
         // Save participant under the institution and event
         const participantDoc = doc(
           db,
-          "delegations",
-          newDelegationId.toString(),
+          "institutional-registrations",
+          newInstitutionId.toString(),
           "participants",
           uniqueId.toString()
         );
@@ -216,7 +216,7 @@ app.post("/delegation", async (req, res) => {
       regPage,
       {
         id: uniqueId,
-        delegation: newDelegationId,
+        institution: newInstitutionId,
         total: updatedTotal,
       },
       { merge: true }
