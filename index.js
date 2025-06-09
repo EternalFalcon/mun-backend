@@ -58,13 +58,9 @@ app.get("/", (req, res) => {
 // Razorpay Payment Endpoint
 app.post("/indipay", async (req, res) => {
   const { total } = req.body;
-  const basePrice = 300;
-
-  // Calculate total amount
-  const totalAmount = basePrice * total;
 
   const options = {
-    amount: totalAmount * 100, // Amount in paise
+    amount: total * 100, // Amount in paise
     currency: "INR",
     receipt: shortid.generate(),
     payment_capture: 1,
