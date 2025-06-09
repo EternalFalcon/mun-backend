@@ -56,7 +56,7 @@ app.get("/", (req, res) => {
 });
 
 // Razorpay Payment Endpoint
-app.post("/indipay", async (req, res) => {
+app.post("/payment", async (req, res) => {
   const { total } = req.body;
 
   const options = {
