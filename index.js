@@ -2,14 +2,12 @@ import express from "express";
 import { initializeApp } from "firebase/app";
 import {
   getFirestore,
-  collection,
   setDoc,
   doc,
   getDoc,
 } from "firebase/firestore";
 import bodyParser from "body-parser";
 import cors from "cors";
-import crypto from "crypto";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
 
@@ -24,13 +22,13 @@ app.use(bodyParser.json());
 
 // Firebase Initialization
 const firebaseConfig = {
-  apiKey: "AIzaSyDLIsh-5C2GnoUiemDWevVwojcxSeoBIlo",
-  authDomain: "sjbhsphenomenon2024.firebaseapp.com",
-  projectId: "sjbhsphenomenon2024",
-  storageBucket: "sjbhsphenomenon2024.firebaseapp.com",
-  messagingSenderId: "321451426175",
-  appId: "1:321451426175:web:8562dfd8795aa59033da4a",
-  measurementId: "G-6M50VRN3YX",
+  apiKey: "AIzaSyCiGpSWIznhjuH2aJ7f90lrGbtCojveNKA",
+  authDomain: "bills-app-2a7e8.firebaseapp.com",
+  projectId: "bills-app-2a7e8",
+  storageBucket: "bills-app-2a7e8.firebasestorage.app",
+  messagingSenderId: "315528552147",
+  appId: "1:315528552147:web:341cba3c00888ae7b0be26",
+  measurementId: "G-3BQESYYFKK"
 };
 const fireApp = initializeApp(firebaseConfig);
 const db = getFirestore(fireApp);
@@ -89,18 +87,16 @@ app.post("/individual", async (req, res) => {
       order_id,
       payment_id,
       razorpay_signature,
-      fName,
       name,
-      total,
-      day1,
-      day2,
       email,
       phoneNumber,
       dateOfBirth,
+      event,
+      total,
     } = req.body;
 
     // Assign `name` to `fName` if `fName` is not explicitly provided
-    const finalName = fName || name || "Anonymous";
+    const finalName = name || "Anonymous";
 
     if (!order_id || !payment_id || !razorpay_signature || !total) {
       return res.status(400).json({ error: "Missing required fields", data: req.body });
@@ -111,14 +107,12 @@ app.post("/individual", async (req, res) => {
       email: email || "No email provided",
       phoneNumber: phoneNumber || "No phone number provided",
       dateOfBirth: dateOfBirth || "No date of birth provided",
-      total: total || 0,
-      day1: day1 || {},
-      day2: day2 || null,
+      event: event || {},
     };
 
     console.log("Registration Data before Firestore:", registrationData);
 
-    const regPage = doc(db, "mun-details", "registrations");
+    const regPage = doc(db, "transcendence-details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
     const newId = parseInt(regInfo.id || 0) + 10;
@@ -164,13 +158,13 @@ app.post("/delegation", async (req, res) => {
     }
   
     // Prepare registration data
-    const regPage = doc(db, "mun-details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { id: 0, delegation: 0, total: 0 };
+    const regPage = doc(db, "transcendence-details", "registrations");
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, institutions: 0, total: 0 };
 
-    const newDelegationId = parseInt(regInfo.delegation || 0) + 10;
+    const newInstitutionId = parseInt(regInfo.institutions || 0) + 10;
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
 
-    console.log("New Delegation ID:", newDelegationId, "Updated Total:", updatedTotal);
+    console.log("New Delegation ID:", newInstitutionId, "Updated Total:", updatedTotal);
 
     // Save delegation information
     const delegationData = {
@@ -187,7 +181,7 @@ app.post("/delegation", async (req, res) => {
 
     // Save delegation data under the institution
     console.log("Saving delegation data...");
-    await setDoc(doc(db, "delegations", newDelegationId.toString()), delegationData);
+    await setDoc(doc(db, "institutional-registrations", newInstitutionId.toString()), delegationData);
 
     // Save individual participant data
     const ids = [];
