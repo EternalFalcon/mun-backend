@@ -234,6 +234,61 @@ app.post("/delegation", async (req, res) => {
   }
 });
 
+const validateEmail = (email) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+};
+
+app.post("/message", async (req, res) => {
+  try{
+    console.log("Request payload at /message:", req.body);
+
+    const {
+      name,
+      email,
+      message,
+    } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        error: "Missing required fields",
+        data: req.body,
+      });
+    }
+
+    if (!validateEmail(email)) { // Check if email is missing OR if it doesn't pass regex
+      return res.status(400).json({
+        error: "Invalid or missing email address", // More specific error message
+        data: req.body,
+      });
+    }
+
+    const timestamp = new Date().toISOString();
+
+    const messagePage = doc(db, "transcendence-details", "messages", timestamp);
+    const data = {
+      name, 
+      email,
+      message,
+      timestamp
+    }
+
+    console.log("Updating delegation summary...");
+    await setDoc(
+      messagePage,
+      data
+    );
+
+    res.status(200).json({ result: "success" });
+  }catch (error) {
+    console.error("Error in /message endpoint:", error.message);
+    res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+    });
+  }
+})
+
 
 
 // Start Server
