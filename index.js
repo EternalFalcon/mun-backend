@@ -146,6 +146,7 @@ app.post("/delegation", async (req, res) => {
       razorpay_signature,
       institutionName,
       totalParticipants,
+      teacher,
       events,
     } = req.body;
 
@@ -170,6 +171,7 @@ app.post("/delegation", async (req, res) => {
     const delegationData = {
       institutionName,
       totalParticipants,
+      teacher,
       events,
       paymentDetails: {
         order_id,
