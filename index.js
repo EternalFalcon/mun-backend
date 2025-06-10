@@ -265,7 +265,7 @@ app.post("/message", async (req, res) => {
 
     const timestamp = new Date().toISOString();
 
-    const messagePage = doc(db, "transcendence-details", "messages", timestamp);
+    const messagePage = doc(db, "messages", timestamp);
     const data = {
       name, 
       email,
