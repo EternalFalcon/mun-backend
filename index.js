@@ -143,7 +143,7 @@ app.post("/individual", async (req, res) => {
 
     console.log("New ID:", newId, "Updated Total:", updatedTotal);
 
-    await setDoc(doc(db, "individual-registrations", newId.toString()), registrationData);
+    await setDoc(doc(db, "indiRegistrations", newId.toString()), registrationData);
     await setDoc(
       regPage,
       { id: newId, total: updatedTotal },
@@ -206,7 +206,7 @@ app.post("/delegation", async (req, res) => {
 
     // Save delegation data under the institution
     console.log("Saving delegation data...");
-    await setDoc(doc(db, "institutional-registrations", newInstitutionId.toString()), delegationData);
+    await setDoc(doc(db, "instiRegistrations", newInstitutionId.toString()), delegationData);
 
     // Save individual participant data
     const ids = [];
@@ -220,7 +220,7 @@ app.post("/delegation", async (req, res) => {
         // Save participant under the institution and event
         const participantDoc = doc(
           db,
-          "institutional-registrations",
+          "instiRegistrations",
           newInstitutionId.toString(),
           "participants",
           uniqueId.toString()
