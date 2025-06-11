@@ -208,9 +208,6 @@ app.post("/delegation", async (req, res) => {
     console.log("Saving delegation data...");
     await setDoc(doc(db, "instiRegistrations", newInstitutionId.toString()), delegationData);
 
-    // Save individual participant data
-    const id = newInstitutionId;
-
     // Update delegation summary in Firestore
     console.log("Updating delegation summary...");
     await setDoc(
@@ -219,7 +216,7 @@ app.post("/delegation", async (req, res) => {
       { merge: true }
     );
 
-    res.status(200).json({ result: "success", id: id });
+    res.status(200).json({ result: "success", ids: [[institutionName, newInstitutionId]] });
   } catch (error) {
     console.error("Error in /delegation endpoint:", error.message);
     res.status(500).json({
