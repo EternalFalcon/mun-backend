@@ -135,7 +135,7 @@ app.post("/individual", async (req, res) => {
 
     console.log("Registration Data before Firestore:", registrationData);
 
-    const regPage = doc(db, "details", "individual");
+    const regPage = doc(db, "details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
     const newId = parseInt(regInfo.id || 0) + 10;
@@ -182,7 +182,7 @@ app.post("/delegation", async (req, res) => {
     }
   
     // Prepare registration data
-    const regPage = doc(db, "details", "institutional");
+    const regPage = doc(db, "details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, institution: 0, total: 0 };
 
     const newInstitutionId = (parseInt(regInfo.institutions || 0) + 10).toString()+"INS";
