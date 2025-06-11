@@ -209,7 +209,7 @@ app.post("/delegation", async (req, res) => {
     await setDoc(doc(db, "instiRegistrations", newInstitutionId.toString()), delegationData);
 
     // Save individual participant data
-    const id = {institutionName, newInstitutionId};
+    const id = newInstitutionId;
 
     // Update delegation summary in Firestore
     console.log("Updating delegation summary...");
