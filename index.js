@@ -220,7 +220,7 @@ app.post("/delegation", async (req, res) => {
           "instiRegistrations",
           newInstitutionId.toString(),
           "participants",
-          uniqueId,
+          uniqueId.toString(),
         );
         uniqueId+=10;
         await setDoc(participantDoc, {
