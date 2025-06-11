@@ -237,8 +237,8 @@ app.post("/delegation", async (req, res) => {
     await setDoc(
       regPage,
       {
-        id: 10,
-        total: 10,
+        id: newInstitutionId,
+        total: updatedTotal,
       },
       { merge: true }
     );
