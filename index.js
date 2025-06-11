@@ -219,7 +219,7 @@ app.post("/delegation", async (req, res) => {
       { merge: true }
     );
 
-    res.status(200).json({ result: "success", id });
+    res.status(200).json({ result: "success", id: id });
   } catch (error) {
     console.error("Error in /delegation endpoint:", error.message);
     res.status(500).json({
