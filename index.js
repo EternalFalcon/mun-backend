@@ -212,15 +212,17 @@ app.post("/delegation", async (req, res) => {
     const id = {institutionName, newInstitutionId};
     for (const event of events) {
       console.log(`Processing event: ${event.name}`);
+      let uniqueId = 0
       for (const participant of event.participants) {
-
         // Save participant under the institution and event
         const participantDoc = doc(
           db,
           "instiRegistrations",
           newInstitutionId.toString(),
           "participants",
+          uniqueId,
         );
+        uniqueId+=10;
         await setDoc(participantDoc, {
           ...participant,
           event: event.name,
