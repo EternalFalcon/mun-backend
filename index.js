@@ -241,7 +241,7 @@ app.post("/delegation", async (req, res) => {
       regPage,
       {
         id: uniqueId,
-        institution: newInstitutionId,
+        institutions: newInstitutionId,
         total: updatedTotal,
       },
       { merge: true }
