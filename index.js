@@ -10,7 +10,6 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import Razorpay from "razorpay";
 import dotenv from "dotenv";
-import admin from "firebase-admin";
 
 import shortid from "shortid";
 dotenv.config();
@@ -32,11 +31,6 @@ const firebaseConfig = {
   measurementId: "G-3BQESYYFKK"
 };
 const fireApp = initializeApp(firebaseConfig);
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(), // or use cert()
-  });
-}
 const db = getFirestore(fireApp);
 
 // Razorpay Initialization
