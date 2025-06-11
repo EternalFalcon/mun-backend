@@ -185,7 +185,7 @@ app.post("/delegation", async (req, res) => {
     const regPage = doc(db, "details", "institutional");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, institution: 0, total: 0 };
 
-    const newInstitutionId = parseInt(regInfo.institutions || 0) + 10;
+    const newInstitutionId = (parseInt(regInfo.institutions || 0) + 10).toString()+"INS";
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
 
     console.log("New Delegation ID:", newInstitutionId, "Updated Total:", updatedTotal);
@@ -206,7 +206,7 @@ app.post("/delegation", async (req, res) => {
 
     // Save delegation data under the institution
     console.log("Saving delegation data...");
-    await setDoc(doc(db, "instiRegistrations", newInstitutionId.toString()), delegationData);
+    await setDoc(doc(db, "instiRegistrations", newInstitutionId), delegationData);
 
     // Save individual participant data
     const ids = [];
