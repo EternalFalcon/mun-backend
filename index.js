@@ -210,27 +210,27 @@ app.post("/delegation", async (req, res) => {
 
     // Save individual participant data
     const id = {institutionName, newInstitutionId};
-    for (const event of events) {
-      console.log(`Processing event: ${event.name}`);
-      let uniqueId = 0
-      for (const participant of event.participants) {
-        // Save participant under the institution and event
-        const participantDoc = doc(
-          db,
-          "instiRegistrations",
-          newInstitutionId.toString(),
-          "participants",
-          uniqueId.toString(),
-        );
-        uniqueId+=10;
-        await setDoc(participantDoc, {
-          ...participant,
-          event: event.name,
-          category: event.category,
-          institutionName,
-        });
-      }
-    }
+    // for (const event of events) {
+    //   console.log(`Processing event: ${event.name}`);
+    //   let uniqueId = 0
+    //   for (const participant of event.participants) {
+    //     // Save participant under the institution and event
+    //     const participantDoc = doc(
+    //       db,
+    //       "instiRegistrations",
+    //       newInstitutionId.toString(),
+    //       "participants",
+    //       uniqueId.toString(),
+    //     );
+    //     uniqueId+=10;
+    //     await setDoc(participantDoc, {
+    //       ...participant,
+    //       event: event.name,
+    //       category: event.category,
+    //       institutionName,
+    //     });
+    //   }
+    // }
 
     // Update delegation summary in Firestore
     console.log("Updating delegation summary...");
