@@ -135,7 +135,7 @@ app.post("/individual", async (req, res) => {
 
     console.log("Registration Data before Firestore:", registrationData);
 
-    const regPage = doc(db, "transcendence-details", "registrations");
+    const regPage = doc(db, "details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
     const newId = parseInt(regInfo.id || 0) + 10;
