@@ -136,7 +136,7 @@ app.post("/individual", async (req, res) => {
     console.log("Registration Data before Firestore:", registrationData);
 
     const regPage = doc(db, "details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { id: 0, institutions: 0, total: 0 };
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
     const newId = parseInt(regInfo.id || 0) + 10;
     const updatedTotal = parseInt(regInfo.total || 0) + total;
@@ -183,9 +183,9 @@ app.post("/delegation", async (req, res) => {
   
     // Prepare registration data
     const regPage = doc(db, "details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { id: 0, institutions: 0, total: 0 };
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
-    const newInstitutionId = parseInt(regInfo.institutions || 0) + 10;
+    const newInstitutionId = parseInt(regInfo.id || 0) + 10;
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
 
     console.log("New Delegation ID:", newInstitutionId, "Updated Total:", updatedTotal);
@@ -209,13 +209,10 @@ app.post("/delegation", async (req, res) => {
     await setDoc(doc(db, "instiRegistrations", newInstitutionId.toString()), delegationData);
 
     // Save individual participant data
-    const ids = [];
-    let uniqueId = parseInt(regInfo.id || 0);
+    const id = {institutionName, newInstitutionId};
     for (const event of events) {
       console.log(`Processing event: ${event.name}`);
       for (const participant of event.participants) {
-        uniqueId += 10;
-        ids.push([participant.name, uniqueId]);
 
         // Save participant under the institution and event
         const participantDoc = doc(
@@ -223,14 +220,12 @@ app.post("/delegation", async (req, res) => {
           "instiRegistrations",
           newInstitutionId.toString(),
           "participants",
-          uniqueId.toString()
         );
         await setDoc(participantDoc, {
           ...participant,
           event: event.name,
           category: event.category,
           institutionName,
-          uniqueId,
         });
       }
     }
@@ -241,13 +236,12 @@ app.post("/delegation", async (req, res) => {
       regPage,
       {
         id: uniqueId,
-        institutions: newInstitutionId,
         total: updatedTotal,
       },
       { merge: true }
     );
 
-    res.status(200).json({ result: "success", ids });
+    res.status(200).json({ result: "success", id });
   } catch (error) {
     console.error("Error in /delegation endpoint:", error.message);
     res.status(500).json({
