@@ -182,7 +182,7 @@ app.post("/delegation", async (req, res) => {
     }
   
     // Prepare registration data
-    const regPage = doc(db, "transcendence-details", "registrations");
+    const regPage = doc(db, "details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, institution: 0, total: 0 };
 
     const newInstitutionId = parseInt(regInfo.institutions || 0) + 10;
