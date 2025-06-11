@@ -174,7 +174,7 @@ app.post("/delegation", async (req, res) => {
     } = req.body;
 
     // Validation for required fields
-    if (!order_id || !payment_id || !razorpay_signature || !institutionName || !events) {
+    if (!order_id || !payment_id || !razorpay_signature || !institutionName || !events || !teacher) {
       return res.status(400).json({
         error: "Missing required fields",
         data: req.body,
