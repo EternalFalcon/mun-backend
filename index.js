@@ -56,29 +56,29 @@ app.get("/", (req, res) => {
 // Razorpay Payment Endpoint
 app.post("/payment", async (req, res) => {
   const { type, members } = req.body;
-  let total = 1;
+  let total = 0;
 
-  // const amount = {
-  //   '1' : 250,
-  //   '2' : 400,
-  //   '3' : 600,
-  //   '5' : 1000,
-  // }
+  const amount = {
+    '1' : 250,
+    '2' : 400,
+    '3' : 600,
+    '5' : 1000,
+  }
 
-  // if(type == 'insti'){
-  //   total = 6750;
-  // }else if(type == 'indi'){
-  //   for (let key in amount) {
-  //     if (key == members) {
-  //       total = amount[key];
-  //     }
-  //   }
-  // }else{
-  //   res.status(500).json({
-  //     error: "Error creating order"
-  //   })
-  //   return
-  // }
+  if(type == 'insti'){
+    total = 5900;
+  }else if(type == 'indi'){
+    for (let key in amount) {
+      if (key == members) {
+        total = amount[key];
+      }
+    }
+  }else{
+    res.status(500).json({
+      error: "Error creating order"
+    })
+    return
+  }
 
   const options = {
     amount: total * 100, // Amount in paise
