@@ -183,10 +183,11 @@ app.post("/delegation", async (req, res) => {
   
     // Prepare registration data
     const regPage = doc(db, "details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, institution: 0, total: 0 };
 
     const newInstitutionId = parseInt(regInfo.id || 0) + 12;
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
+    const updatedInsti = parseInt(regInfo.institution || 0) + 1;
 
     console.log("New Delegation ID:", newInstitutionId, "Updated Total:", updatedTotal);
 
@@ -212,7 +213,7 @@ app.post("/delegation", async (req, res) => {
     console.log("Updating delegation summary...");
     await setDoc(
       regPage,
-      { id: newInstitutionId, total: updatedTotal },
+      { id: newInstitutionId, institution: updatedInsti,  total: updatedTotal },
       { merge: true }
     );
 
