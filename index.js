@@ -297,6 +297,7 @@ app.post("/message", async (req, res) => {
     const {
       name,
       email,
+      phone,
       message,
     } = req.body;
 
@@ -320,6 +321,7 @@ app.post("/message", async (req, res) => {
     const data = {
       name, 
       email,
+      phone,
       message,
       timestamp
     }
