@@ -185,7 +185,7 @@ app.post("/delegation", async (req, res) => {
     const regPage = doc(db, "details", "registrations");
     const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
 
-    const newInstitutionId = parseInt(regInfo.id || 0) + 10;
+    const newInstitutionId = parseInt(regInfo.id || 0) + 12;
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
 
     console.log("New Delegation ID:", newInstitutionId, "Updated Total:", updatedTotal);
