@@ -1,6 +1,8 @@
 import express from "express";
 import { initializeApp } from "firebase/app";
 import {
+  collection,
+  getDocs,
   getFirestore,
   setDoc,
   doc,
@@ -51,6 +53,62 @@ app.use((req, res, next) => {
 // Test Route
 app.get("/", (req, res) => {
   res.status(200).send("Backend is running!");
+});
+
+// Helper functions
+function updateStratagem(eventCounts, category) {
+  const key = `stratagem-${category}`;
+  eventCounts[key] = (eventCounts[key] || 0) + 1;
+}
+
+function updateGeneric(eventCounts, name) {
+  eventCounts[name] = (eventCounts[name] || 0) + 1;
+}
+
+function processEvent(eventCounts, name, category) {
+  if (!name) return;
+
+  if (name === "stratagem") {
+    updateStratagem(eventCounts, category);
+  } else {
+    updateGeneric(eventCounts, name);
+  }
+}
+
+// Route handler
+app.get("/fetchdata", async (req, res) => {
+  try {
+    const indiSnapshot = await getDocs(collection(db, "indiRegistrations"));
+    const instiSnapshot = await getDocs(collection(db, "instiRegistrations"));
+    const eventCounts = {};
+
+    // Individual registrations
+    indiSnapshot.forEach((doc) => {
+      const data = doc.data();
+      const event = data.event;
+      if (event?.name) {
+        processEvent(eventCounts, event.name, event.category);
+      }
+    });
+
+    // Institutional registrations
+    instiSnapshot.forEach((doc) => {
+      const data = doc.data();
+      const events = data.events;
+      if (Array.isArray(events)) {
+        events.forEach((event) => {
+          if (event?.name) {
+            processEvent(eventCounts, event.name, event.category);
+          }
+        });
+      }
+    });
+
+    res.status(200).json(eventCounts);
+  } catch (error) {
+    console.error("Error fetching event data:", error);
+    res.status(500).json({ error: "Failed to fetch event data: "+error });
+  }
 });
 
 // Razorpay Payment Endpoint
