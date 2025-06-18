@@ -124,8 +124,7 @@ app.post("/payment", async (req, res) => {
   }
 
   if(type == 'insti'){
-    // total = 5900;
-    res.status(500).json({ error: "The Registrations will resume tomorrow due to some techincal issues" });
+    total = 5900;
   }else if(type == 'indi'){
     for (let key in amount) {
       if (key == members) {
