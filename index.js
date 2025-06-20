@@ -178,7 +178,21 @@ app.post("/individual", async (req, res) => {
 
     // Assign `name` to `fName` if `fName` is not explicitly provided
     const finalName = name || "Anonymous";
+    const members = event?.members || 0
+    let totalAmt = 0
 
+    const amount = {
+      '1' : 250,
+      '2' : 400,
+      '3' : 600,
+      '5' : 1000,
+    }
+
+    for(let key in amount){
+      if(members.toString() == key){
+        totalAmt = amount[key];
+      }
+    }
     if (!order_id || !payment_id || !razorpay_signature || !total) {
       return res.status(400).json({ error: "Missing required fields", data: req.body });
     }
@@ -194,17 +208,18 @@ app.post("/individual", async (req, res) => {
     console.log("Registration Data before Firestore:", registrationData);
 
     const regPage = doc(db, "details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0 };
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, total: 0, amount: 0 };
 
     const newId = parseInt(regInfo.id || 0) + 10;
     const updatedTotal = parseInt(regInfo.total || 0) + total;
+    const updatedTotalAmt = parseInt(regInfo.amount || 0) + totalAmt;
 
     console.log("New ID:", newId, "Updated Total:", updatedTotal);
 
     await setDoc(doc(db, "indiRegistrations", newId.toString()), registrationData);
     await setDoc(
       regPage,
-      { id: newId, total: updatedTotal },
+      { id: newId, total: updatedTotal, amount: updatedTotalAmt },
       { merge: true }
     );
 
@@ -241,11 +256,12 @@ app.post("/delegation", async (req, res) => {
   
     // Prepare registration data
     const regPage = doc(db, "details", "registrations");
-    const regInfo = (await getDoc(regPage)).data() || { id: 0, institution: 0, total: 0 };
+    const regInfo = (await getDoc(regPage)).data() || { id: 0, institution: 0, total: 0, amount: 0 };
 
     const newInstitutionId = parseInt(regInfo.id || 0) + 12;
     const updatedTotal = parseInt(regInfo.total || 0) + totalParticipants;
     const updatedInsti = parseInt(regInfo.institution || 0) + 1;
+    const updatedTotalAmt = parseInt(regInfo.amount || 0) + 5900;
 
     console.log("New Delegation ID:", newInstitutionId, "Updated Total:", updatedTotal);
 
@@ -271,7 +287,7 @@ app.post("/delegation", async (req, res) => {
     console.log("Updating delegation summary...");
     await setDoc(
       regPage,
-      { id: newInstitutionId, institution: updatedInsti,  total: updatedTotal },
+      { id: newInstitutionId, institution: updatedInsti,  total: updatedTotal, amount: updatedTotalAmt },
       { merge: true }
     );
 
