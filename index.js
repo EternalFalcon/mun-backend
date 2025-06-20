@@ -188,8 +188,8 @@ app.post("/individual", async (req, res) => {
       '5' : 1000,
     }
 
-    for(let key in amount){
-      if(members.toString() == key){
+    for (let key in amount) {
+      if (key == members) {
         totalAmt = amount[key];
       }
     }
