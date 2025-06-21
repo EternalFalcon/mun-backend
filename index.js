@@ -117,14 +117,14 @@ app.post("/payment", async (req, res) => {
   let total = 0;
 
   const amount = {
-    '1' : 250,
-    '2' : 400,
-    '3' : 600,
-    '5' : 1000,
+    '1' : 300,
+    '2' : 500,
+    '3' : 750,
+    '5' : 1250,
   }
 
   if(type == 'insti'){
-    total = 5900;
+    total = 7250;
   }else if(type == 'indi'){
     for (let key in amount) {
       if (key == members) {
