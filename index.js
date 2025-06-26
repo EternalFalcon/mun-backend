@@ -124,7 +124,7 @@ app.post("/payment", async (req, res) => {
   }
 
   res.status(500).json({
-      error: "Error creating order"
+      error: "The registrations have closed"
     })
   return
 
