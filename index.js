@@ -124,13 +124,19 @@ app.post("/payment", async (req, res) => {
   }
 
   if(type == 'insti'){
-    total = 7250;
+    // total = 7250;
+    res.status(500).json({
+      error: "The Registrations are closed for institutional"
+    })
   }else if(type == 'indi'){
-    for (let key in amount) {
-      if (key == members) {
-        total = amount[key];
-      }
-    }
+    // for (let key in amount) {
+    //   if (key == members) {
+    //     total = amount[key];
+    //   }
+    // }
+    res.status(500).json({
+      error: "The Registrations are closed for individual"
+    })
   }else{
     res.status(500).json({
       error: "Error creating order"
