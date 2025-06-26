@@ -124,8 +124,8 @@ app.post("/payment", async (req, res) => {
   }
 
   res.status(500).json({
-      error: "The registrations have closed"
-    })
+    error: "The registrations have closed"
+  })
   return
 
   if(type == 'insti'){
